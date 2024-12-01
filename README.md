@@ -4,14 +4,13 @@
 
 This project demonstrates how to use machine learning techniques for predicting the likelihood of stroke occurrence in patients using a dataset of healthcare information. The dataset includes various features such as age, hypertension, heart disease, smoking status, BMI, and more. We preprocess the data, handle missing values, encode categorical variables, and use different models to predict stroke outcomes.
 
-[title](https://www.example.com)
 
 ## Table of Contents
 1. [Import Libraries](#import-libraries)
 2. [Data Preparation](#data-preparation)
-3. [Data Scaling](#data-scaling)
-4. [Data Encoding](#data-encoding)
-5. [Handling Class Imbalance](#handling-class-imbalance)
+3. [Resolving Missing Data and Rescaling](#resolving-missing-data-and-rescaling)
+4. [Categorical Data Encoded](#categorical-data-encoded)
+5. [Balancing the Data](#balancing-the-data)
 6. [Modeling](#modeling)
     - Random Forest Classifier
     - Logistic Regression
@@ -41,7 +40,7 @@ from sklearn.model_selection import GridSearchCV
 
 ## Data Preparation
 
-## The dataset includes the following columns:
+### The dataset includes the following columns:
 
 1)  id: unique identifier
 2)  gender: "Male", "Female" or "Other"
@@ -57,7 +56,7 @@ from sklearn.model_selection import GridSearchCV
 12) ==stroke: 1 if the patient had a stroke or 0 if not==
 *Note: "Unknown" in smoking_status means that the information is unavailable for this patient.`
 
-## Installation of Data
+### Installation of Data
 
 To run this project, you'll need Python 3 and the following libraries:
 
@@ -67,75 +66,81 @@ To run this project, you'll need Python 3 and the following libraries:
 - `sklearn`
 
 You can install the required packages using pip:
-pip install pandas matlib numpy sklearn
-
+pip install pandas numpy matplotlib scikit-learn imbalanced-learn statsmodels
 ```bash
 pip install pandas matplotlib numpy sklearn
 ```
-## Handling Missing Data
+### Data Preprocessing:
+- The dataset is loaded and cleaned by handling missing values and incorrect entries (e.g., dropping rows with missing BMI or irrelevant gender data).
+- Categorical variables such as `gender`, `ever_married`, `work_type`, and `Residence_type` are encoded.
+- Numerical features such as `age`, `bmi`, and `avg_glucose_level` are scaled.
+- The dataset is loaded using `pd.read_csv`:
 
-We address the missing data in the following ways:
+```python
+stroke_df = pd.read_csv("Resources/healthcare-dataset-stroke-data.csv")
+```
+- Then, any rows with missing values (except for bmi) are dropped, and rows with "Other" in the gender column are removed.
 
-- **BMI**: We drop rows where the BMI is missing, as the missing percentage is low.
-- **Gender**: We drop rows where the gender is labeled as "Other" (only one row contains this label).
-- **Smoking Status**: We fill missing `smoking_status` values, assuming that most "Unknown" statuses for individuals under 18 years of age are "never smoked".
- 
-## Get to Know
+### Data Splitting:
+- The dataset is split into training and testing sets using `train_test_split`.
+- Imbalanced data is handled by techniques like Random Oversampling and SMOTE (Synthetic Minority Over-sampling Technique).
+## Resolving Missing Data and Rescaling
 
-| Link  | Description  |
-|:------|:-------------|
-| [Cardiovasculares](https://www.who.int/health-topics/cardiovascular-diseases#tab=tab_1) ||| World Health Organization. |||
-| [Heart Disease Prediction](https://www.kaggle.com/code/farzadnekouei/heart-disease-prediction/notebook) ||| kaggle.com |||
-| [Trends In Heart Disease](https://catalog.data.gov/dataset/rates-an diseasd-trends-in-heart-disease-and-stroke-mortality-among-us-adults-35-by-county-a-2000-45659 ||| data.gov. |||
-| [STROKE)](https://www.who.int/southeastasia/news/detail/28-10-2021-world-stroke-day) ||| World Health Organization. |||
+The missing values in `smoking_status` are handled by assuming that individuals under 18 years old have never smoked. The data is then scaled using `StandardScaler`:
 
-## Usage
+```python
+scaler = StandardScaler()
+col_scale = ['age', 'bmi', 'avg_glucose_level']
+X_train[col_scale] = scaler.fit_transform(X_train[col_scale])
+X_test[col_scale] = scaler.transform(X_test[col_scale])
+```
+## Categorical Data Encoded
 
-1. **Clone the repository**:
-    ```bash
-    git clone https://github.com/Pnwankwo2/Project-2-Healthcare-.git
-    cd Project-2-Healthcare-
-    ```
+Categorical variables are encoded using `OneHotEncoder` and `OrdinalEncoder` for ordinal variables (such as `smoking_status`).
 
-2. **Place the CSV files** (`healthcare-dataset-stroke-data`) in the `resources` directory.
+```python
+categorical_columns = ['gender', 'ever_married', 'work_type', 'Residence_type']
+X_train_encoded = pd.get_dummies(X_train, columns=categorical_columns, drop_first=True)
+X_test_encoded = pd.get_dummies(X_test, columns=categorical_columns, drop_first=True)
+
+smoke_ord_enc = OrdinalEncoder(categories=[['smokes', 'formerly smoked', 'never smoked']], 
+                               encoded_missing_value=-1, handle_unknown='use_encoded_value', unknown_value=-1)
+X_train_encoded['smoking_status_ordinal'] = smoke_ord_enc.fit_transform(X_train_encoded['smoking_status'].values.reshape(-1, 1))
+X_test_encoded['smoking_status_ordinal'] = smoke_ord_enc.transform(X_test_encoded['smoking_status'].values.reshape(-1, 1))
+```
+## Balancing the Data
+
+Imbalanced classes are handled using SMOTE:
+
+```python
+smote = SMOTE(random_state=42)
+X_train_resampled, y_train_resampled = smote.fit_resample(X_train_encoded, y_train)
+```
 
 
+## Modeling:
+The project applies multiple classification algorithms such as:
+- Random Forest
+- Logistic Regression
+- Decision Trees
+- Support Vector Machines (SVM)
 
-3. **View the generated visualizations** that illustrate trends and correlations.
+A `GridSearchCV` is used to fine-tune the logistic regression model's hyperparameters.
 
-4. **Presentation** A copy of the presentation Google Docs can be found in the images folder.
+### Evaluation:
+- The models are evaluated using metrics like precision, recall, F1-score, and balanced accuracy to ensure reliable performance, especially in the presence of imbalanced data. 
+
+## Conclusion
+- This project demonstrates how data preprocessing techniques, such as handling missing values, feature scaling, encoding categorical variables, and oversampling, can help in building a model to predict strokes. By using multiple classifiers and resampling techniques, we aim to create a balanced model capable of identifying at-risk patients.
 
 ## Data Sources
 
 - Stroke Data sourced from (https://www.kaggle.com/datasets/fedesoriano/stroke-prediction-dataset).
 
 
-
-## Analysis
-
-The analysis is performed in several key steps:
-
-1. **Data Import**: The script reads the CSV files into Pandas DataFrames.
-2. **Data Cleaning**: Dates are formatted appropriately, and columns are renamed for clarity.
-3. **Data Merging**: Wastewater and case data are combined into a single DataFrame for comparative analysis.
-4. **Visualization**: Various plots are generated to illustrate trends over time and regional differences.
-
-| Syntax | Description |
-| ----------- | ----------- |
-| Header | Title |
-| Paragraph | Text |
-
-[title](https://www.kaggle.com/fedesoriano)
-
-
-### Key Metrics Analyzed
-
-- **Antigens in Wastewater**: Concentration of virus particles found in wastewater samples.
-- **COVID-19 Cases**: Rolling average cases per 100,000 residents.
-
-
-Check the license (commons etc. which one is it) and credit the author
 ## Acknowledgements
+
+[Accreditation](https://www.kaggle.com/fedesoriano)
 (Confidential Source) - Use only for educational purposes
 If you use this dataset in your research, please credit the author.
 License: Data files © Original Authors
