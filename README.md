@@ -120,15 +120,17 @@ X_train_resampled, y_train_resampled = smote.fit_resample(X_train_encoded, y_tra
 
 ## Modeling:
 The project applies multiple classification algorithms such as:
-- Random Forest
+- AdaBoost
 - Logistic Regression
-- Decision Trees
-- Support Vector Machines (SVM)
+
+
+### After Resampling Example
+![alt text](Resources/after_resampling.jpg)
 
 A `GridSearchCV` is used to fine-tune the logistic regression model's hyperparameters.
 
 ### Evaluation:
-- The models are evaluated using metrics like precision, recall, F1-score, and balanced accuracy to ensure reliable performance, especially in the presence of imbalanced data. 
+- The models are evaluated using metrics like precision, recall, F1-score, and balanced accuracy to ensure reliable performance, especially in the presence of imbalanced data. In this project, various machine learning models were evaluated for their ability to predict stroke risk, with AdaBoost emerging as the most promising algorithm. AdaBoost demonstrated strong potential in identifying key patterns in the data, showing the capability to improve classification performance, particularly for imbalanced datasets.
 
 ## Conclusion
 - This project demonstrates how data preprocessing techniques, such as handling missing values, feature scaling, encoding categorical variables, and oversampling, can help in building a model to predict strokes. By using multiple classifiers and resampling techniques, we aim to create a balanced model capable of identifying at-risk patients.
